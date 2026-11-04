@@ -1,0 +1,89 @@
+id: power_origin
+version: 0.10.0
+api: "0.18"
+icon: solar-power
+maintainer: ksFPV
+license: MIT
+stage: beta
+topics: [energy, home]
+boards: any
+flash_kb: 48
+permissions:
+  ha_commands: ["recorder/statistics_during_period", "call_service:solcast_solar.query_forecast_data"]
+answers:
+  - command: "call_service:solcast_solar.query_forecast_data"
+    fields: { start: { path: "data[0].period_start", as: epoch }, pv: { path: "data[*].pv_estimate", as: numbers } }
+tiles:
+  - id: flow
+    name: tile_name
+    icon: solar-power
+    sizes: { min: 2x2, max: 6x4, full: true }
+    memory: 1800
+    options:
+      - { id: solar, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_solar, hint: hint_solar }
+      - { id: grid, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_grid, hint: hint_grid }
+      - { id: home, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_home, hint: hint_home }
+      - { id: battery, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_battery, hint: hint_battery }
+      - { id: soc, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_soc, hint: hint_soc }
+      - { id: import_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_import_today, hint: hint_import_today }
+      - { id: export_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_export_today, hint: hint_export_today }
+      - { id: home_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_home_today, hint: hint_energy_today }
+      - { id: import_price, kind: entity, domains: [sensor, input_number], attributes: [unit_of_measurement], label: input_import_price, hint: hint_price }
+      - { id: export_price, kind: entity, domains: [sensor, input_number], attributes: [unit_of_measurement], label: input_export_price, hint: hint_price }
+      - { id: invert, kind: choice, default: none, label: invert, hint: hint_invert,
+          choices: [{ value: none, label: invert_none }, { value: grid, label: invert_only_grid }, { value: battery, label: invert_only_battery }, { value: both, label: invert_both }] }
+      - { id: hours, kind: choice, default: dots, label: hours, hint: hint_hours,
+          choices: [{ value: dots, label: hours_dots }, { value: bars, label: hours_bars }, { value: "off", label: hours_off }] }
+  - id: battery
+    name: battery_name
+    icon: battery
+    sizes: { min: 1x1, max: 6x4, full: true }
+    memory: 1400
+    options:
+      - { id: soc, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_soc, hint: hint_soc }
+      - { id: battery, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_battery, hint: hint_battery }
+      - { id: capacity, kind: entity, domains: [sensor, input_number], attributes: [unit_of_measurement], label: input_capacity, hint: hint_capacity }
+      - { id: charge_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_charge_today, hint: hint_energy_today }
+      - { id: discharge_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_discharge_today, hint: hint_energy_today }
+      - { id: import_price, kind: entity, domains: [sensor, input_number], attributes: [unit_of_measurement], label: input_import_price, hint: hint_price }
+      - { id: reserve, kind: entity, domains: [sensor, input_number, number], attributes: [unit_of_measurement], label: input_reserve, hint: hint_reserve }
+      - { id: sun, kind: entity, domains: [sun], attributes: [next_setting], default: sun.sun, label: input_sun, hint: hint_sun }
+      - { id: invert_battery, kind: toggle, default: false, label: invert_battery, hint: hint_invert_battery }
+  - id: week
+    name: week_name
+    icon: calendar-week
+    sizes: { min: 1x1, max: 6x4, full: true }
+    memory: 1200
+    options:
+      - { id: solar_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement, state_class], label: input_solar_today, hint: hint_energy_today }
+      - { id: home_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement, state_class], label: input_home_today, hint: hint_energy_today }
+      - { id: import_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement, state_class], label: input_import_today, hint: hint_energy_today }
+  - id: devices
+    name: devices_name
+    icon: format-list-bulleted
+    sizes: { min: 1x1, max: 6x4, full: true }
+    memory: 1400
+    options:
+      - { id: home, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_home, hint: hint_home }
+      - { id: d1, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d1, hint: hint_device }
+      - { id: d2, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d2, hint: hint_device }
+      - { id: d3, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d3, hint: hint_device }
+      - { id: d4, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d4, hint: hint_device }
+      - { id: d5, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d5, hint: hint_device }
+      - { id: d6, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d6, hint: hint_device }
+      - { id: d7, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d7, hint: hint_device }
+      - { id: d8, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d8, hint: hint_device }
+      - { id: d9, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d9, hint: hint_device }
+      - { id: d10, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d10, hint: hint_device }
+      - { id: d11, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d11, hint: hint_device }
+  - id: forecast
+    name: forecast_name
+    icon: weather-sunny
+    sizes: { min: 1x1, max: 6x4, full: true }
+    memory: 1200
+cards:
+  - { id: detail, name: tile_name }
+  - { id: battery_detail, name: battery_name }
+  - { id: week_detail, name: week_name }
+  - { id: devices_detail, name: devices_name }
+  - { id: forecast_week, name: forecast_name }

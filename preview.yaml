@@ -1,0 +1,125 @@
+# Example data for the simulator only, not measured values.
+tiles:
+  - { tile: forecast, name: Sample forecast, sizes: [1x1, 2x1, 2x2] }
+  - { tile: week, name: Sample week, sizes: [1x1, 1x2, 2x1, 2x2], options: { solar_today: sensor.preview_pv_today, home_today: sensor.preview_used, import_today: sensor.preview_import } }
+  - { tile: devices, name: Sample devices, sizes: [1x1, 1x2, 2x1, 2x2], options: { home: sensor.preview_home, d1: sensor.preview_wallbox, d2: sensor.preview_heat_pump, d3: sensor.preview_rack, d4: sensor.preview_fridge, d5: sensor.preview_dishwasher, d6: sensor.preview_office, d7: sensor.preview_router } }
+  - { tile: flow, name: Sample energy, sizes: [2x2], options: { solar: sensor.preview_solar, grid: sensor.preview_grid, home: sensor.preview_home, battery: sensor.preview_battery, soc: sensor.preview_soc, home_today: sensor.preview_used, import_today: sensor.preview_import, export_today: sensor.preview_export, import_price: input_number.preview_import_price, export_price: input_number.preview_export_price, invert: none } }
+  - { tile: flow, name: Sample energy bars, sizes: [2x2], options: { solar: sensor.preview_solar, grid: sensor.preview_grid, home: sensor.preview_home, battery: sensor.preview_battery, soc: sensor.preview_soc, home_today: sensor.preview_used, import_today: sensor.preview_import, export_today: sensor.preview_export, import_price: input_number.preview_import_price, export_price: input_number.preview_export_price, invert: none, hours: bars } }
+  - { tile: battery, name: Sample battery, sizes: [1x1, 2x1, 2x2, 2x3], options: { soc: sensor.preview_soc, battery: sensor.preview_battery, capacity: sensor.preview_capacity, charge_today: sensor.preview_charge, discharge_today: sensor.preview_discharge, import_price: input_number.preview_import_price, invert_battery: false } }
+  - tile: battery
+    name: Battery low, reserve 10
+    sizes: [1x1]
+    data:
+      entities:
+        soc: { state: "14", attributes: { unit_of_measurement: "%" } }
+        battery: { state: "-900", attributes: { unit_of_measurement: W } }
+        capacity: { state: "14.21", attributes: { unit_of_measurement: kWh } }
+        reserve: { state: "10", attributes: { unit_of_measurement: "%" } }
+  - tile: battery
+    name: Battery charging, no capacity
+    sizes: [2x2]
+    data:
+      entities:
+        soc: { state: "63", attributes: { unit_of_measurement: "%" } }
+        battery: { state: "2.4", attributes: { unit_of_measurement: kW } }
+  - tile: flow
+    name: Invalid battery unit
+    sizes: [2x2]
+    data:
+      entities:
+        soc: { state: "14.2", attributes: { unit_of_measurement: kWh } }
+  - tile: flow
+    name: Solar only and full battery
+    sizes: [2x2]
+    data:
+      entities:
+        solar: { state: "1200", attributes: { unit_of_measurement: W } }
+        grid: { state: "0", attributes: { unit_of_measurement: W } }
+        home: { state: "1.2", attributes: { unit_of_measurement: kW } }
+        battery: { state: "0", attributes: { unit_of_measurement: W } }
+        soc: { state: "100", attributes: { unit_of_measurement: "%" } }
+        import_today: { state: "500", attributes: { unit_of_measurement: Wh } }
+        export_today: { state: "3", attributes: { unit_of_measurement: kWh } }
+states:
+  sensor.preview_solar: { state: "0", attributes: { "": "0", unit_of_measurement: W } }
+  sensor.preview_grid: { state: "0.09", attributes: { "": "0.09", unit_of_measurement: kW } }
+  sensor.preview_home: { state: "1400", attributes: { "": "1400", unit_of_measurement: W } }
+  sensor.preview_battery: { state: "-1360", attributes: { "": "-1360", unit_of_measurement: W } }
+  sensor.preview_soc: { state: "47", attributes: { "": "47", unit_of_measurement: "%" } }
+  sensor.preview_import: { state: "4.2", attributes: { "": "4.2", unit_of_measurement: kWh } }
+  sensor.preview_export: { state: "1.1", attributes: { "": "1.1", unit_of_measurement: kWh } }
+  sensor.preview_used: { state: "4.8", attributes: { "": "4.8", unit_of_measurement: kWh } }
+  sensor.preview_pv_today: { state: "3.1", attributes: { unit_of_measurement: kWh, state_class: total_increasing } }
+  sensor.preview_wallbox: { state: "0", attributes: { unit_of_measurement: W, friendly_name: Wallbox } }
+  sensor.preview_heat_pump: { state: "1.24", attributes: { unit_of_measurement: kW, friendly_name: Heat pump } }
+  sensor.preview_rack: { state: "186", attributes: { unit_of_measurement: W, friendly_name: Server rack } }
+  sensor.preview_fridge: { state: "64", attributes: { unit_of_measurement: W, friendly_name: Fridge } }
+  sensor.preview_dishwasher: { state: "412", attributes: { unit_of_measurement: W, friendly_name: Dishwasher with a long name } }
+  sensor.preview_office: { state: "97", attributes: { unit_of_measurement: W, friendly_name: Office desk } }
+  sensor.preview_router: { state: "12", attributes: { unit_of_measurement: W, friendly_name: Router } }
+  sensor.preview_capacity: { state: "14.21", attributes: { "": "14.21", unit_of_measurement: kWh } }
+  sensor.preview_charge: { state: "14.9", attributes: { "": "14.9", unit_of_measurement: kWh } }
+  sensor.preview_discharge: { state: "12.3", attributes: { "": "12.3", unit_of_measurement: kWh } }
+  input_number.preview_import_price: { state: "0.32", attributes: { unit_of_measurement: EUR/kWh } }
+  input_number.preview_export_price: { state: "0.08", attributes: { unit_of_measurement: EUR/kWh } }
+# The bench answers this one command with one static answer for every request. That proves the drawing, not the
+# async request/reply path; tests/history_logic_test.cpp does that with a request-aware mock. The key is longer than
+# the app's 32-byte bound, as a real statistic id can be; the code takes the sole key whatever its text. Example SoC
+# means, not measured: the hour from 8 h ago has a null mean and the one from 7 h ago no row: two gaps.
+commands:
+  "recorder/statistics_during_period":
+    # Example week, not measured: day rows for roof, house (a total: its last state) and import.
+    "sensor.preview_pv_today":
+      - { start: "{epoch-152h}", end: "{epoch-128h}", change: 11.2 }
+      - { start: "{epoch-128h}", end: "{epoch-104h}", change: 4.3 }
+      - { start: "{epoch-104h}", end: "{epoch-80h}", change: 15.8 }
+      - { start: "{epoch-80h}", end: "{epoch-56h}", change: 9.0 }
+      - { start: "{epoch-56h}", end: "{epoch-32h}", change: 13.4 }
+      - { start: "{epoch-32h}", end: "{epoch-8h}", change: 6.7 }
+      - { start: "{epoch-8h}", end: "{epoch+16h}", change: 3.1 }
+    "sensor.preview_used":
+      - { start: "{epoch-152h}", end: "{epoch-128h}", state: 14.1 }
+      - { start: "{epoch-128h}", end: "{epoch-104h}", state: 13.0 }
+      - { start: "{epoch-104h}", end: "{epoch-80h}", state: 12.2 }
+      - { start: "{epoch-80h}", end: "{epoch-56h}", state: 15.5 }
+      - { start: "{epoch-56h}", end: "{epoch-32h}", state: 11.8 }
+      - { start: "{epoch-32h}", end: "{epoch-8h}", state: 14.9 }
+      - { start: "{epoch-8h}", end: "{epoch+16h}", state: 4.8 }
+    "sensor.preview_import":
+      - { start: "{epoch-152h}", end: "{epoch-128h}", change: 3.0 }
+      - { start: "{epoch-128h}", end: "{epoch-104h}", change: 8.1 }
+      - { start: "{epoch-104h}", end: "{epoch-80h}", change: 0.4 }
+      - { start: "{epoch-80h}", end: "{epoch-56h}", change: 5.2 }
+      - { start: "{epoch-56h}", end: "{epoch-32h}", change: 1.1 }
+      - { start: "{epoch-32h}", end: "{epoch-8h}", change: 7.6 }
+      - { start: "{epoch-8h}", end: "{epoch+16h}", change: 1.9 }
+    "sensor.preview_soc_state_of_charge_battery":
+      - { start: "{epoch-12h}", end: "{epoch-11h}", mean: 62.4 }
+      - { start: "{epoch-11h}", end: "{epoch-10h}", mean: 58.1 }
+      - { start: "{epoch-10h}", end: "{epoch-9h}", mean: 53.9 }
+      - { start: "{epoch-9h}", end: "{epoch-8h}", mean: 50.2 }
+      - { start: "{epoch-8h}", end: "{epoch-7h}", mean: null }
+      - { start: "{epoch-6h}", end: "{epoch-5h}", mean: 61.5 }
+      - { start: "{epoch-5h}", end: "{epoch-4h}", mean: 74.8 }
+      - { start: "{epoch-4h}", end: "{epoch-3h}", mean: 86.0 }
+      - { start: "{epoch-3h}", end: "{epoch-2h}", mean: 92.3 }
+      - { start: "{epoch-2h}", end: "{epoch-1h}", mean: 71.6 }
+      - { start: "{epoch-1h}", end: "{epoch}", mean: 52.8 }
+  # Example forecast, not Solcast's: half hours from 30 min ago, kW.
+  "call_service:solcast_solar.query_forecast_data":
+    data:
+      - { period_start: "{epoch-30m}", pv_estimate: 0.0 }
+      - { period_start: "{epoch}", pv_estimate: 0.1 }
+      - { period_start: "{epoch+30m}", pv_estimate: 0.3 }
+      - { period_start: "{epoch+60m}", pv_estimate: 0.6 }
+      - { period_start: "{epoch+90m}", pv_estimate: 0.9 }
+      - { period_start: "{epoch+120m}", pv_estimate: 1.3 }
+      - { period_start: "{epoch+150m}", pv_estimate: 1.6 }
+      - { period_start: "{epoch+180m}", pv_estimate: 1.9 }
+      - { period_start: "{epoch+210m}", pv_estimate: 2.1 }
+      - { period_start: "{epoch+240m}", pv_estimate: 2.3 }
+      - { period_start: "{epoch+270m}", pv_estimate: 2.2 }
+      - { period_start: "{epoch+300m}", pv_estimate: 1.9 }
+      - { period_start: "{epoch+330m}", pv_estimate: 1.5 }
+      - { period_start: "{epoch+360m}", pv_estimate: 1.0 }
+      - { period_start: "{epoch+390m}", pv_estimate: 0.4 }

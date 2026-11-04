@@ -1,0 +1,7 @@
+backups/
+preview*/
+!preview.yaml
+.preview/
+IDEA.md
+INSTALLATION-REPORT.md
+__pycache__/
