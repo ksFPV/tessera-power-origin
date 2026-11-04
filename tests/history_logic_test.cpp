@@ -276,6 +276,12 @@ int main(int argc, char **argv) {
     assert(forecast_parse(false, d.as<JsonObjectConst>()).n == 0);
     deserializeJson(d, R"({"pv":[1]})");
     assert(forecast_parse(true, d.as<JsonObjectConst>()).n == 0);
+    // The Energy dashboard's forecast: hours of two entries summed (zones read), an hour before midnight left out.
+    deserializeJson(d, R"({"e1":{"wh_hours":{"2026-11-04T02:00:00+01:00":1500,"2026-11-04T02:00:00+00:00":500,"2026-11-03T23:00:00+00:00":9}},
+      "e2":{"wh_hours":{"2026-11-04T02:00:00+01:00":500}}})");
+    const PvForecast e = energy_forecast_parse(true, d.as<JsonObjectConst>(), 1793750400);
+    assert(e.from == 1793750400 && e.n == 6 && std::isnan(e.kw[0]) && e.kw[2] == 2.0f && e.kw[3] == 2.0f && e.kw[4] == 0.5f);
+    assert(energy_forecast_parse(false, d.as<JsonObjectConst>(), 1793750400).n == 0);
     // A day's hours: by the cut key, a row before `from` or without a mean left out.
     deserializeJson(d, R"({"sensor.a_very_long_house_energy_sens":[{"start":1793746800000,"end":1793750400000,"mean":0.4},
       {"start":1793754000000,"end":1793757600000,"mean":1.5},{"start":1793757600000,"end":1793761200000}]})");

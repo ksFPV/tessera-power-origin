@@ -8,11 +8,11 @@ screens. Five tiles share one plugin:
 
 | Tile | Shows | Tap opens |
 |---|---|---|
-| **Energy flow** (2x2 and up) | Solar, grid, house and battery as rings; the house ring split by source; today's hours as dots or bars | Today hour by hour (stacked solar / battery / grid, tap an hour for its split), cost so far and per hour, autarky and self-use, the best solar window from Solcast |
+| **Energy flow** (2x2 and up) | Solar, grid, house and battery as rings; the house ring split by source; today's hours as dots or bars | Today hour by hour (stacked solar / battery / grid, tap an hour for its split), cost so far and per hour, autarky and self-use, the best solar window from the forecast |
 | **Battery** | State of charge in the original's battery shell, one cell per kWh, power, "lasts until" / "full at" | Today's charge and discharge, cycles, grid purchase avoided, the last 12 hours |
 | **Week** | Seven days of solar with each day's autarky | The same, full size |
 | **Where to** | Up to eleven devices you choose, largest first, the rest of the house last | Every device that fits |
-| **PV forecast** | Today's Solcast forecast by the hour, what is still to come | The coming days |
+| **PV forecast** | Today's PV forecast by the hour, what is still to come | The coming days |
 
 A tap on the middle of the energy rings switches to one large ring, as the original's centre: what is free by day,
 the house, the cost per hour, then back to the four rings. Holding a tile does the same as tapping it.
@@ -33,12 +33,12 @@ chosen, unavailable or in a unit the tile cannot read shows `--` or leaves its p
   estimate, not a bill.
 - **Battery reserve**: a sensor or `input_number` with your minimum SoC; cells turn red within 5 % of it.
 - **Week** and the battery's **last 12 hours** need sensors with long-term statistics (a `state_class`).
-- **PV forecast** needs the [Solcast integration](https://github.com/BJReplay/ha-solcast-solar).
+- **PV forecast** uses the [Solcast integration](https://github.com/BJReplay/ha-solcast-solar) when it is there (seven days). Without it, the forecast of the Energy dashboard: Forecast.Solar, Open-Meteo Solar Forecast or another integration set as solar forecast under Settings, Dashboards, Energy (today and tomorrow).
 
 ## What it asks Home Assistant
 
 - `recorder/statistics_during_period` for the hourly and daily history.
-- `solcast_solar.query_forecast_data` for the forecast.
+- `solcast_solar.query_forecast_data`, or else `energy/solar_forecast`, for the forecast.
 
 Both only read; nothing in Home Assistant is changed.
 

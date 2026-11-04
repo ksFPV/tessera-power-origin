@@ -64,7 +64,9 @@
     "best_none": "PV-Überschuss: noch keine Prognose",
     "best_today": "PV-Überschuss heute %d-%d Uhr, bis %.1f kW",
     "best_tomorrow": "PV-Überschuss morgen %d-%d Uhr, bis %.1f kW",
-    "best_nothing": "PV-Überschuss: keiner erwartet"
+    "best_nothing": "PV-Überschuss: keiner erwartet",
+    "no_sensor": "Kein Sensor gewählt",
+    "no_forecast": "Keine Prognose"
   },
   "app": {
     "name": "Power Origin",

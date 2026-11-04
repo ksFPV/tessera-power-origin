@@ -1416,6 +1416,8 @@ class Days : public tessera::Tile {
     const char *kwh = narrow_ ? "" : " kWh";
     if (known && shares) snprintf(buf, sizeof(buf), "\xC3\x98 %.1f%s \xC2\xB7 %.0f %%", sum / known, kwh, 100 * share_sum / shares);
     else if (known) snprintf(buf, sizeof(buf), "\xC3\x98 %.1f%s", sum / known, kwh);
+    else if (forecast_ ? !plugin_->forecast().n : ids_[0].empty() && ids_[1].empty() && ids_[2].empty())
+      snprintf(buf, sizeof(buf), "%s", T(forecast_ ? "no_forecast" : "no_sensor"));
     say(note_, buf);
     ui::set_color(note_, theme::MUTED);
     // The original's SVG: a bar half a slot wide from the base, (base - 10) high at the week's best, the dot 6 above.
@@ -1538,6 +1540,9 @@ class Where : public tessera::Tile {
     const Ranking r = rank_devices(w, DEVICES, house, rows_ - 1, tile_ < 0 ? 0 : 25);
     std::string head = narrow_ ? "" : "\xC3\x98 15 min";
     if (std::isfinite(house)) head += (narrow_ ? "" : " \xC2\xB7 ") + power(house);
+    bool any = std::isfinite(house);
+    for (int i = 0; i < DEVICES; ++i) any |= !dev_[i].empty();
+    if (!any) head = T("no_sensor");
     say(note_, head);
     ui::set_color(note_, theme::MUTED);
     // Every share is of the house; without a house reading, of the biggest.
@@ -1640,7 +1645,8 @@ class Sun : public tessera::Tile {
     say(title_, T(today ? "forecast_today" : "forecast_tomorrow"));
     ui::set_color(title_, theme::INK);
     char buf[32];
-    if (last >= 0) snprintf(buf, sizeof(buf), "%.1f kWh", total); else snprintf(buf, sizeof(buf), "-- kWh");
+    if (last >= 0) snprintf(buf, sizeof(buf), "%.1f kWh", total);
+    else snprintf(buf, sizeof(buf), "%s", f.n ? "-- kWh" : T("no_forecast"));
     say(note_, buf);
     ui::set_color(note_, theme::MUTED);
     const int n = last - first + 1, pad = 8;
@@ -1728,12 +1734,12 @@ uint32_t PowerOrigin::ask(JsonObjectConst request) { return week_re_ = tessera::
 uint32_t PowerOrigin::request_history(const std::string &statistic_id, uint32_t now) {
   return history_.request([this](JsonObjectConst request) { return tessera::send(this, request); }, statistic_id, now);
 }
-// Solcast's forecast from local midnight for seven days, as half-hour kW (manifest `answers`: start, pv).
-// ponytail: Solcast only and midnight from the clock (a DST night is an hour off); add a forecast option if another
-// integration is wanted.
+// Solcast's forecast from local midnight for seven days, as half-hour kW (manifest `answers`: start, pv); without
+// Solcast, the Energy dashboard's forecast (on_message). ponytail: midnight from the clock (a DST night is an hour off).
 uint32_t PowerOrigin::request_forecast(uint32_t now) {
   const tessera::LocalTime t = tessera::local_time(now);
-  const uint32_t midnight = now - (t.hour * 3600 + t.minute * 60 + t.second);
+  const uint32_t midnight = pv_from_ = now - (t.hour * 3600 + t.minute * 60 + t.second);
+  pv_energy_ = false;
   JsonDocument doc;
   doc["ask"] = "call_service:solcast_solar.query_forecast_data";
   JsonObject data = doc["data"].to<JsonObject>();
@@ -1786,7 +1792,16 @@ void PowerOrigin::on_message(JsonObjectConst message) {
   }
   if (re && re == forecast_re_) {
     forecast_re_ = 0;
-    forecast_ = forecast_parse(message["ok"] | false, message["result"].as<JsonObjectConst>());
+    const bool ok = message["ok"] | false;
+    forecast_ = pv_energy_ ? energy_forecast_parse(ok, message["result"].as<JsonObjectConst>(), pv_from_)
+                           : forecast_parse(ok, message["result"].as<JsonObjectConst>());
+    if (!forecast_.n && !pv_energy_) {
+      pv_energy_ = true;
+      JsonDocument doc;
+      doc["ask"] = "energy/solar_forecast";
+      forecast_re_ = tessera::send(this, doc.as<JsonObjectConst>());
+      return;
+    }
     ++forecast_version;
     tessera::refresh();
     return;

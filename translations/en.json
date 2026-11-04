@@ -64,7 +64,9 @@
     "best_none": "PV surplus: no forecast yet",
     "best_today": "PV surplus today %d-%d h, up to %.1f kW",
     "best_tomorrow": "PV surplus tomorrow %d-%d h, up to %.1f kW",
-    "best_nothing": "PV surplus: none expected"
+    "best_nothing": "PV surplus: none expected",
+    "no_sensor": "No sensor set",
+    "no_forecast": "No forecast"
   },
   "app": {
     "name": "Power Origin",

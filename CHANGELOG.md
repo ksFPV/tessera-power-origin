@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.1
+
+- The PV forecast works without Solcast: when Solcast does not answer, the plugin reads the forecast of the Energy
+  dashboard (Forecast.Solar, Open-Meteo Solar Forecast or any integration that provides one). That one covers today
+  and tomorrow only; in summer the app's answer cap may cut tomorrow's afternoon.
+- Week and Where to say "No sensor set" when no sensor is chosen, the forecast "No forecast" when none came.
+
 ## 0.10.0
 
 - Smoother: the tiles set only what changed. LVGL drew a part again on every show and style set, so the energy

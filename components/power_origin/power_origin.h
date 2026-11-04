@@ -44,6 +44,7 @@ class PowerOrigin : public Component, public tessera::Plugin {
   std::string hour_ids_[3];
   int hour_step_{-1};
   uint32_t hours_hour_{0}, hours_at_{0}, hours_re_{0};
-  uint32_t forecast_re_{0}, week_re_{0}, pv_asked_{0};
+  uint32_t forecast_re_{0}, week_re_{0}, pv_asked_{0}, pv_from_{0};
+  bool pv_energy_{false};  // the forecast asked is the Energy dashboard's, after Solcast gave none
 };
 }  // namespace esphome::power_origin

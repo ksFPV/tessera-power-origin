@@ -1,5 +1,5 @@
 id: power_origin
-version: 0.10.0
+version: 0.10.1
 api: "0.18"
 icon: solar-power
 maintainer: ksFPV
@@ -9,7 +9,7 @@ topics: [energy, home]
 boards: any
 flash_kb: 48
 permissions:
-  ha_commands: ["recorder/statistics_during_period", "call_service:solcast_solar.query_forecast_data"]
+  ha_commands: ["recorder/statistics_during_period", "call_service:solcast_solar.query_forecast_data", "energy/solar_forecast"]
 answers:
   - command: "call_service:solcast_solar.query_forecast_data"
     fields: { start: { path: "data[0].period_start", as: epoch }, pv: { path: "data[*].pv_estimate", as: numbers } }

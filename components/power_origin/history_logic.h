@@ -10,6 +10,7 @@
 // a real gap, not a zero. A malformed row refuses the whole answer, so the chart shows nothing rather than a
 // plausible-looking lie.
 #include <ArduinoJson.h>
+#include "visual_logic.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -148,6 +149,25 @@ inline PvForecast forecast_parse(bool ok, JsonObjectConst result) {
     if (f.n == PvForecast::SLOTS) break;
     f.kw[f.n++] = v.is<double>() && std::isfinite(v.as<double>()) ? v.as<float>() : NAN;
   }
+  return f;
+}
+// Any forecast integration of the Energy dashboard (Forecast.Solar, Open-Meteo, Solcast): `energy/solar_forecast`
+// answers {entry: {wh_hours: {iso hour: Wh}}}, summed over entries. An hour's Wh is its mean W, so both half hours get it.
+// ponytail: the app sends the first 24 hours of each entry (bounded), a summer tomorrow loses its afternoon; and the
+// key is read as the hour's start.
+inline PvForecast energy_forecast_parse(bool ok, JsonObjectConst result, uint32_t midnight) {
+  PvForecast f;
+  if (!ok || result.isNull()) return f;
+  f.from = midnight;
+  for (float &v : f.kw) v = NAN;
+  for (JsonPairConst entry : result)
+    for (JsonPairConst hour : entry.value()["wh_hours"].as<JsonObjectConst>()) {
+      const uint32_t t = iso_epoch(hour.key().c_str());
+      if (!hour.value().is<double>() || t < midnight || (t - midnight) / 1800 + 2 > PvForecast::SLOTS) continue;
+      const int i = (t - midnight) / 1800;
+      for (int j = i; j < i + 2; ++j) f.kw[j] = (std::isfinite(f.kw[j]) ? f.kw[j] : 0) + hour.value().as<float>() / 1000;
+      f.n = std::max(f.n, i + 2);
+    }
   return f;
 }
 
