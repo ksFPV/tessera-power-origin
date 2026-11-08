@@ -1,5 +1,5 @@
 id: power_origin
-version: 0.10.1
+version: 0.10.2
 api: "0.18"
 icon: solar-power
 maintainer: ksFPV
@@ -17,7 +17,9 @@ tiles:
   - id: flow
     name: tile_name
     icon: solar-power
-    sizes: { min: 2x2, max: 6x4, full: true }
+    # ponytail: 2x1, not 2x2: the editor places every plugin tile at 1x1 and an edge grows one axis at a time, so a
+    # 2x2 minimum can never be reached. Back to 2x2 once Tessera starts a plugin tile at its minimum.
+    sizes: { min: 2x1, max: 6x4, full: true }
     memory: 1800
     options:
       - { id: solar, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_solar, hint: hint_solar }

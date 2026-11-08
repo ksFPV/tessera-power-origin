@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.2
+
+- The energy tile can be sized again when it was placed at 1x1: its smallest size is 2x1 (house and battery charge),
+  so the right edge makes it 2x1 and the bottom edge 2x2. The editor places a plugin's tile at 1x1 and lets an edge grow
+  one direction at a time, which a 2x2 minimum never allowed (reported on a Guition JC8012P4A1, 10.1").
+
 ## 0.10.1
 
 - The PV forecast works without Solcast: when Solcast does not answer, the plugin reads the forecast of the Energy

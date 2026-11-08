@@ -8,7 +8,7 @@ screens. Five tiles share one plugin:
 
 | Tile | Shows | Tap opens |
 |---|---|---|
-| **Energy flow** (2x2 and up) | Solar, grid, house and battery as rings; the house ring split by source; today's hours as dots or bars | Today hour by hour (stacked solar / battery / grid, tap an hour for its split), cost so far and per hour, autarky and self-use, the best solar window from the forecast |
+| **Energy flow** (2x2 and up for the rings; 2x1 shows house and charge) | Solar, grid, house and battery as rings; the house ring split by source; today's hours as dots or bars | Today hour by hour (stacked solar / battery / grid, tap an hour for its split), cost so far and per hour, autarky and self-use, the best solar window from the forecast |
 | **Battery** | State of charge in the original's battery shell, one cell per kWh, power, "lasts until" / "full at" | Today's charge and discharge, cycles, grid purchase avoided, the last 12 hours |
 | **Week** | Seven days of solar with each day's autarky | The same, full size |
 | **Where to** | Up to eleven devices you choose, largest first, the rest of the house last | Every device that fits |
