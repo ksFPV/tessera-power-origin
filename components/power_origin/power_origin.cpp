@@ -1536,8 +1536,8 @@ class Where : public tessera::Tile {
     float w[DEVICES];
     for (int i = 0; i < DEVICES; ++i) w[i] = mean_[i].m;
     const float house = house_.m;
-    // As many as the rows hold, the rest last; a tile names only who draws 25 W, a card every device it has room for.
-    const Ranking r = rank_devices(w, DEVICES, house, rows_ - 1, tile_ < 0 ? 0 : 25);
+    // As many devices as the rows hold, tile or card, the rest last.
+    const Ranking r = rank_devices(w, DEVICES, house, rows_ - 1, 0);
     std::string head = narrow_ ? "" : "\xC3\x98 15 min";
     if (std::isfinite(house)) head += (narrow_ ? "" : " \xC2\xB7 ") + power(house);
     bool any = std::isfinite(house);

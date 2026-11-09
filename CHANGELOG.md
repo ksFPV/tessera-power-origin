@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.3
+
+- Where to shows on the tile as many devices as its rows hold, as the card does, small ones included; before, the tile
+  put every device under 25 W into the rest even with room to spare.
+
 ## 0.10.2
 
 - The energy tile can be sized again when it was placed at 1x1: its smallest size is 2x1 (house and battery charge),
