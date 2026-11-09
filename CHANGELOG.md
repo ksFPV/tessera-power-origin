@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.4
+
+- The rings show today's sum under "kW" where a circle has the room (a big tile or a big screen): solar made, grid
+  bought, house used, battery charged and discharged. Solar and battery come from the battery tile's day on the same
+  screen; without it they stay empty.
+
 ## 0.10.3
 
 - Where to shows on the tile as many devices as its rows hold, as the card does, small ones included; before, the tile

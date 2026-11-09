@@ -52,6 +52,13 @@ static void say(lv_obj_t *o, std::string text) {
   if (*T("decimal") == ',') std::replace(text.begin(), text.end(), '.', ',');
   ui::set_text(o, text);
 }
+// ASCII only (digits, "kWh", signs): the sum of the glyphs' advances.
+static int text_width(const std::string &text, Font f) {
+  const lv_font_t *face = ui::font(f);
+  int w = 0;
+  if (face) for (size_t i = 0; i < text.size(); ++i) w += lv_font_get_glyph_width(face, text[i], i + 1 < text.size() ? text[i + 1] : 0);
+  return w;
+}
 static std::string power(float v) {
   if (!std::isfinite(v)) return "--";
   char buf[32];
@@ -239,7 +246,9 @@ class Flow : public tessera::Tile {
       n.icon = ui::label(n.disc, Font::ICON_SMALL, theme::MUTED);
       n.value = ui::label(n.disc, vf, theme::INK);
       n.unit = ui::label(n.disc, Font::BODY, theme::MUTED);
-      for (auto *label : {n.icon, n.value, n.unit}) lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+      n.day = ui::label(n.disc, Font::BODY, theme::MUTED);
+      lv_label_set_long_mode(n.day, LV_LABEL_LONG_CLIP);
+      for (auto *label : {n.icon, n.value, n.unit, n.day}) lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
       // Placed as the original: the icon (24 * r/54 units) centred 0.56 r above the centre, the figure's baseline
       // 6 units below it, the unit under the figure. What a small circle cannot hold goes: icon first, then unit.
       const int lw = std::max(1, 2 * (r - sw)), inside = r - sw;
@@ -253,6 +262,11 @@ class Flow : public tessera::Tile {
       place(n.unit, dx, vy + vh - dy, lw, uh);
       show(n.icon, iy + ih / 2 - icon_px / 2 >= cy - inside);
       show(n.unit, vy + vh + uh <= cy + inside + S(4));
+      // Today's sum under the unit, only where a circle has the room (a big tile, a big screen).
+      place(n.day, dx, vy + vh + uh - dy, lw, uh);
+      // The circle's width at the line's foot; on_tick shows the line when its text is narrower.
+      const int foot = vy + vh + 2 * uh - cy;
+      n.room = foot < inside ? static_cast<int>(2 * std::sqrt(static_cast<float>(inside * inside - foot * foot))) : 0;
       // No transform on the icons: LVGL draws each transformed label through a layer of its own, and the four made the
       // pressed tile's redraw take 440 ms, so a tap became a long press and the tile did not open.
     }
@@ -355,6 +369,10 @@ class Flow : public tessera::Tile {
       kw_text(v[i], buf, sizeof(buf));
       say(n.value, buf);
       say(n.unit, "kW");
+      const std::string day = day_text(i);
+      say(n.day, day);
+      show(n.day, !day.empty() && text_width(day, Font::BODY) + 4 <= n.room);
+      ui::set_color(n.day, theme::MUTED);
       // On the light look the sun's and the leaf's own colours are too faint for words: ink there.
       const Paint text = theme::dark || (i != 0 && i != 3) ? paints[i] : Paint{Tone::NORMAL, theme::INK};
       ui::set_tone(n.value, text.tone, text.role);
@@ -364,7 +382,7 @@ class Flow : public tessera::Tile {
       // Each part faded on its own: a whole-object opacity draws the disc through a layer, slow on every press.
       put(n.disc, LV_STYLE_BG_OPA, opa, 0);
       put(n.track, LV_STYLE_ARC_OPA, opa, LV_PART_MAIN);
-      for (auto *l : {n.icon, n.value, n.unit}) put(l, LV_STYLE_TEXT_OPA, opa, 0);
+      for (auto *l : {n.icon, n.value, n.unit, n.day}) put(l, LV_STYLE_TEXT_OPA, opa, 0);
     }
     // flow_house: gauge. Where the house's power comes from, from the top clockwise: sun, store, grid.
     auto shares = house_shares(v[2], v[1], v[3], v[0]);
@@ -614,7 +632,22 @@ class Flow : public tessera::Tile {
   float unit_w_[4]{1, 1, 1, 1};
   bool one_ring_{false};
   static constexpr int MAX_DOTS = 6;
-  struct Node { lv_obj_t *disc{}, *track{}, *icon{}, *value{}, *unit{}, *soc{}, *segments[3]{}; } nodes_[4];
+  // Today in a ring: the sun's day is the house's less the grid's plus the store's net, exact only with the
+  // battery tile's day (store_in/out) on the screen; without it no figure. The store: charged + and discharged -.
+  std::string day_text(int i) const {
+    const float imp = values_[5], exp = values_[6], home = values_[7], in = plugin_->store_in, out = plugin_->store_out;
+    const float v = i == 0 ? home - imp + exp + in - out : i == 1 ? imp : home;
+    char buf[24] = "";
+    if (i == 3) {
+      // Whole kWh from ten on, so "+15 -12" fits the small circle.
+      if (std::isfinite(in) && std::isfinite(out))
+        snprintf(buf, sizeof(buf), "+%.*f -%.*f", in < 10 ? 1 : 0, in, out < 10 ? 1 : 0, out);
+    } else if (std::isfinite(v)) {
+      snprintf(buf, sizeof(buf), "%.1f kWh", std::max(0.0f, v));
+    }
+    return buf;
+  }
+  struct Node { lv_obj_t *disc{}, *track{}, *icon{}, *value{}, *unit{}, *day{}, *soc{}, *segments[3]{}; int room{0}; } nodes_[4];
   struct Link {
     lv_obj_t *track{}, *head{}, *dot[MAX_DOTS]{};
     int dots{0};
