@@ -1,5 +1,5 @@
 id: power_origin
-version: 0.10.4
+version: 0.10.5
 api: "0.18"
 icon: solar-power
 maintainer: ksFPV
@@ -49,7 +49,7 @@ tiles:
       - { id: discharge_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_discharge_today, hint: hint_energy_today }
       - { id: import_price, kind: entity, domains: [sensor, input_number], attributes: [unit_of_measurement], label: input_import_price, hint: hint_price }
       - { id: reserve, kind: entity, domains: [sensor, input_number, number], attributes: [unit_of_measurement], label: input_reserve, hint: hint_reserve }
-      - { id: sun, kind: entity, domains: [sun], attributes: [next_setting], default: sun.sun, label: input_sun, hint: hint_sun }
+      - { id: sun, kind: entity, domains: [sun], attributes: [next_setting], label: input_sun, hint: hint_sun }
       - { id: invert_battery, kind: toggle, default: false, label: invert_battery, hint: hint_invert_battery }
   - id: week
     name: week_name

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.5
+
+- Works with Tessera 0.4.98 again: that app refuses a default on an entity option below plugin API 0.27, so it took
+  the whole plugin for broken and the tiles got no values. The battery tile's "Sun" no longer defaults to `sun.sun`;
+  pick it in the tile's settings for "full at" (without it the tile still shows everything else).
+
 ## 0.10.4
 
 - The rings show today's sum under "kW" where a circle has the room (a big tile or a big screen): solar made, grid
