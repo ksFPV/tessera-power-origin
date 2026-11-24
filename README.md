@@ -19,6 +19,8 @@ the house, the cost per hour, then back to the four rings.
 
 ![All tiles and what a tap opens](screenshots/overview.png)
 
+![The five tiles on a 10.1 inch screen](screenshots/flur-10in.png)
+
 ## Set up
 
 Add the plugin, place a tile and choose its sensors in the tile's options. Nothing is guessed: a sensor that is not
