@@ -1,5 +1,5 @@
 id: power_origin
-version: 0.10.5
+version: 0.10.6
 api: "0.18"
 icon: solar-power
 maintainer: ksFPV
@@ -20,7 +20,8 @@ tiles:
     # ponytail: 2x1, not 2x2: the editor places every plugin tile at 1x1 and an edge grows one axis at a time, so a
     # 2x2 minimum can never be reached. Back to 2x2 once Tessera starts a plugin tile at its minimum.
     sizes: { min: 2x1, max: 6x4, full: true }
-    memory: 1800
+    # memory: objects counted on the bench at the largest size x 100 B (rule 8), plus the members
+    memory: 8000
     options:
       - { id: solar, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_solar, hint: hint_solar }
       - { id: grid, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_grid, hint: hint_grid }
@@ -40,7 +41,7 @@ tiles:
     name: battery_name
     icon: battery
     sizes: { min: 1x1, max: 6x4, full: true }
-    memory: 1400
+    memory: 3400
     options:
       - { id: soc, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_soc, hint: hint_soc }
       - { id: battery, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_battery, hint: hint_battery }
@@ -55,7 +56,7 @@ tiles:
     name: week_name
     icon: calendar-week
     sizes: { min: 1x1, max: 6x4, full: true }
-    memory: 1200
+    memory: 3600
     options:
       - { id: solar_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement, state_class], label: input_solar_today, hint: hint_energy_today }
       - { id: home_today, kind: entity, domains: [sensor], attributes: [unit_of_measurement, state_class], label: input_home_today, hint: hint_energy_today }
@@ -64,7 +65,7 @@ tiles:
     name: devices_name
     icon: format-list-bulleted
     sizes: { min: 1x1, max: 6x4, full: true }
-    memory: 1400
+    memory: 4500
     options:
       - { id: home, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_home, hint: hint_home }
       - { id: d1, kind: entity, domains: [sensor], attributes: [unit_of_measurement], label: input_d1, hint: hint_device }
@@ -82,7 +83,7 @@ tiles:
     name: forecast_name
     icon: weather-sunny
     sizes: { min: 1x1, max: 6x4, full: true }
-    memory: 1200
+    memory: 1900
 cards:
   - { id: detail, name: tile_name }
   - { id: battery_detail, name: battery_name }

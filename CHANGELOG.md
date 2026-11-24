@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.6
+
+- No handler on Tessera's own card any more: a hold on a tile is no longer turned into a tap. The card belongs to the
+  cell, so the handler stayed for whatever the cell showed next (review of tessera-plugins#42).
+- Each tile's `memory` is counted on the preview bench at its largest size (rule 8): Energy flow 8000, Where 4500,
+  Week 3600, Battery 3400, Forecast 1900 bytes. Screens plan their pages with it.
+- CYD (2.8 in): the Energy flow card leaves the hours out when it is too low for them instead of drawing the figures
+  over them; Week at one row gives the head's line to the bars; the Battery card makes room for the battery.
+
 ## 0.10.5
 
 - Works with Tessera 0.4.98 again: that app refuses a default on an entity option below plugin API 0.27, so it took

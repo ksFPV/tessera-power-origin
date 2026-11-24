@@ -74,19 +74,6 @@ static std::string power(float v) {
 constexpr float VB_W = 320, VB_LEFT = 5, VB_SPAN = 310, VB_TOP = 8, VB_H = 184, CX = 160, PY = 44, HY = 146, GX = 46, BX = 274, SR = 32, HR = 42;
 constexpr float LIVE_W = 30;  // LIVE_KW: below it a power stands still, no dots, no arrow, the node is quiet
 
-// A hold is a tap: LVGL calls a press of 400 ms a long press, and Tessera hands a plugin only the short one. The hold
-// is sent on to the card as the short tap it is, so Tessera's own guard and tap point still decide (short or
-// long, the same). LVGL sends no short tap after a long press, so one touch stays one tap.
-static void hold_is_tap(lv_obj_t *parent) {
-  static const lv_event_cb_t send = [](lv_event_t *e) {
-    lv_obj_send_event(static_cast<lv_obj_t *>(lv_event_get_current_target(e)), LV_EVENT_SHORT_CLICKED, nullptr);
-  };
-  lv_obj_t *card = parent;
-  while (card && !lv_obj_has_flag(card, LV_OBJ_FLAG_CLICKABLE)) card = lv_obj_get_parent(card);
-  if (!card) return;
-  lv_obj_remove_event_cb(card, send);  // a tile made again on the same card: still one
-  lv_obj_add_event_cb(card, send, LV_EVENT_LONG_PRESSED, nullptr);
-}
 static lv_obj_t *ring_arc(lv_obj_t *parent, int cx, int cy, int r, int width, lv_part_t part) {
   auto *a = lv_arc_create(parent);
   lv_obj_remove_style_all(a);
@@ -120,7 +107,6 @@ class Flow : public tessera::Tile {
   explicit Flow(PowerOrigin *p) : plugin_(p) {}
   ~Flow() override { if (plugin_->card_from == this) plugin_->card_from = nullptr; }
   void create(const tessera::TileContext &c) override {
-    hold_is_tap(c.parent);
     // One choice for both signs (the tile's 12 options are full); the two toggles of 0.8.1 and before still count.
     const char *inv = c.options["invert"] | "";
     invert_grid_ = !strcmp(inv, "grid") || !strcmp(inv, "both") || (!*inv && (c.options["invert_grid"] | false));
@@ -947,6 +933,7 @@ struct DayChart {
 class FlowCard : public tessera::Card {
  public:
   static constexpr int ROWS = 6;
+  bool hours_{true};
   FlowCard(PowerOrigin *p, bool grid, bool battery) : plugin_(p), flow_(p), chart_(p), invert_grid_(grid) {
     flow_.set_inversion(grid, battery);
     flow_.seed(p->card_from);
@@ -958,10 +945,13 @@ class FlowCard : public tessera::Card {
     // then the day chart at the foot.
     const int chart_h = std::clamp(c.height / 6, 48, 100);
     const int chart_block = 3 * lh + chart_h + 10;
-    const int hours_h = std::max(1, c.height - ROWS * lh - 8 - chart_block);
+    // A card too low for the hours (the CYD) leaves them out rather than drawing the figures over them.
+    const int room = c.height - ROWS * lh - 8 - chart_block, hours_h = room >= 3 * lh ? room : 0;
     head_ = ui::label(c.parent, Font::BODY, theme::MUTED);
     place(head_, 8, 4, c.width - 16, lh);
-    flow_.draw_hours(c.parent, 8, 4 + lh + 4, c.width - 16, hours_h - lh - 12);
+    hours_ = hours_h > 0;
+    if (hours_) flow_.draw_hours(c.parent, 8, 4 + lh + 4, c.width - 16, hours_h - lh - 12);
+    else show(head_, false);
     for (int i = 0; i < ROWS; ++i) {
       rows_[i] = ui::label(c.parent, Font::BODY, i ? theme::INK : theme::MUTED);
       place(rows_[i], 8, hours_h + 4 + i * lh, c.width - 16, lh);
@@ -970,14 +960,14 @@ class FlowCard : public tessera::Card {
     chart_.build(c.parent, c.entity ? c.entity : "", hours_h + 4 + ROWS * lh, c.width, c.height);
   }
   void on_state(JsonObjectConst data) override {
-    flow_.on_state(data);
+    if (hours_) flow_.on_state(data);  // without its hours the flow has nothing drawn to update
     const char *names[] = {"import_today", "export_today", "import_price", "export_price", "home_today"};
     for (int i = 0; i < 5; ++i) values_[i] = entity_value(data, names[i], i == 2 || i == 3 ? Unit::PRICE : Unit::ENERGY);
     chart_.on_state(data, invert_grid_);
     update();
   }
   void on_tick(uint32_t epoch) override {
-    flow_.on_tick(epoch);
+    if (hours_) flow_.on_tick(epoch);
     chart_.tick(epoch);
     plugin_->want_forecast(epoch);
     if (epoch / 60 != shown_) update();
@@ -988,7 +978,7 @@ class FlowCard : public tessera::Card {
     update();
   }
   void on_theme() override {
-    flow_.on_theme();
+    if (hours_) flow_.on_theme();
     update();
     chart_.theme();
   }
@@ -1062,7 +1052,6 @@ class Store : public tessera::Tile {
  public:
   explicit Store(PowerOrigin *p) : plugin_(p) {}
   void create(const tessera::TileContext &c) override {
-    hold_is_tap(c.parent);
     invert_ = c.options["invert_battery"] | false;
     soc_entity_ = c.options["soc"] | "";
     tile_ = c.tile;
@@ -1268,7 +1257,9 @@ class StoreCard : public tessera::Card {
   StoreCard(PowerOrigin *p, bool battery) : store_(p), chart_(p) { store_.set_inversion(battery); store_.live_ = true; }
   void open(const tessera::CardContext &c) override {
     const int lh = ui::line_height(Font::BODY);
-    const int chart_h = std::clamp(c.height / 6, 48, 120);
+    // The battery's figure, bar and state need their room (the CYD): the chart gives it up first.
+    const int need = ui::line_height(Font::TITLE) + 18 + lh + 12;
+    const int chart_h = std::clamp(std::min(c.height / 6, c.height - 6 * lh - 18 - need), 24, 120);
     const int chart_block = 2 * lh + chart_h + 6;
     const int store_h = std::max(1, c.height - 4 * lh - 12 - chart_block);
     store_.draw(c.parent, c.width, store_h);
@@ -1335,7 +1326,6 @@ class Days : public tessera::Tile {
     if (plugin_->card_from == this) plugin_->card_from = nullptr;
   }
   void create(const tessera::TileContext &c) override {
-    hold_is_tap(c.parent);
     const char *names[] = {"solar_today", "home_today", "import_today"};
     tile_ = c.tile;
     if (tile_ >= 0) for (int i = 0; i < 3; ++i) ids_[i] = c.options[names[i]] | "";  // a card's copy has them (seed)
@@ -1365,6 +1355,11 @@ class Days : public tessera::Tile {
       }
     }
     if (vals_[0]) top_ += lh;
+    if (base_ - top_ < lh) {  // one row on a small glass (the CYD): the bars take the head's line
+      show(title_, false);
+      show(note_, false);
+      top_ = pad;
+    }
     update();
   }
   void on_state(JsonObjectConst data) override {
@@ -1506,7 +1501,6 @@ class Where : public tessera::Tile {
   explicit Where(PowerOrigin *p) : plugin_(p) {}
   ~Where() override { if (plugin_->card_from == this) plugin_->card_from = nullptr; }
   void create(const tessera::TileContext &c) override {
-    hold_is_tap(c.parent);
     const int lh = ui::line_height(Font::BODY), pad = 8;
     w_ = c.width;
     tile_ = c.tile;
@@ -1616,7 +1610,6 @@ class Sun : public tessera::Tile {
   static constexpr int HOURS = 24;
   explicit Sun(PowerOrigin *p) : plugin_(p) {}
   void create(const tessera::TileContext &c) override {
-    hold_is_tap(c.parent);
     tile_ = c.tile;
     const int lh = ui::line_height(Font::BODY), pad = 8;
     w_ = c.width - 2 * pad;
