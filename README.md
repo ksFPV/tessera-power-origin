@@ -1,6 +1,6 @@
 # Power Origin
 
-> **Beta, early stage.** Tested on one 4-inch screen only. Expect rough edges, and options that may still change.
+> **Beta, early stage.** Tested on a 4-inch and a 10.1-inch screen. Expect rough edges, and options that may still change.
 
 Where your home's power comes from, at a glance: solar, grid, house and battery as four rings, after the
 [Power Origin card](https://github.com/hoizi89/power-origin-card) for Home Assistant, redrawn natively for Tessera
@@ -15,7 +15,7 @@ screens. Five tiles share one plugin:
 | **PV forecast** | Today's PV forecast by the hour, what is still to come | The coming days |
 
 A tap on the middle of the energy rings switches to one large ring, as the original's centre: what is free by day,
-the house, the cost per hour, then back to the four rings. Holding a tile does the same as tapping it.
+the house, the cost per hour, then back to the four rings.
 
 ![All tiles and what a tap opens](screenshots/overview.png)
 
@@ -44,7 +44,7 @@ Both only read; nothing in Home Assistant is changed.
 
 ## Screens
 
-Tested on one screen only, a Guition ESP32-S3-4848S040 (480 x 480); other screens are untested beyond the simulator.
+Tested daily on a Guition ESP32-S3-4848S040 (4 in, 480 x 480) and a Guition JC8012P4A1 V3 (10.1 in, ESP32-P4). The CYD (2.8 in) passes the preview bench (`tools/preview.py --strict`) but has not run on a real board.
 Reports from other screens are welcome as issues. Texts in English and German, following the screen's language.
 
 ## Credits
