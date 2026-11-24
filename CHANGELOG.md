@@ -1,6 +1,9 @@
 # Changelog
 
-## 0.10.6
+## 0.11.0
+
+- Ready for the Tessera plugin catalog (review of tessera-plugins#42).
+  Also tested on a 10.1 in (Guition JC8012P4A1 V3).
 
 - No handler on Tessera's own card any more: a hold on a tile is no longer turned into a tap. The card belongs to the
   cell, so the handler stayed for whatever the cell showed next (review of tessera-plugins#42).
